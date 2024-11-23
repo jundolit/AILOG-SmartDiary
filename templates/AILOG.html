@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AILOG - 일기 작성</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body {
+            font-family: 'Georgia', serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f7efe5; /* 따뜻한 배경색 */
+        }
+
+        header {
+            background-color: #8d6e63;
+            color: white;
+            padding: 15px;
+            display: flex;
+            justify-content: center; /* 가운데 정렬 */
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        header h1 {
+            font-family: 'Cursive', sans-serif;
+            font-size: 24px;
+        }
+
+        .menu-btn {
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: white;
+            cursor: pointer;
+        }
+
+        .header-buttons button {
+            background-color: #d7ccc8;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            margin-left: 5px;
+            cursor: pointer;
+            color: #4e342e;
+            font-weight: bold;
+        }
+
+        .sidenav {
+            height: 100%;
+            width: 0;
+            position: fixed;
+            z-index: 1;
+            top: 0;
+            left: 0;
+            background-color: #6d4c41;
+            color: white;
+            overflow-x: hidden;
+            transition: 0.3s;
+            padding-top: 60px;
+        }
+
+        .sidenav a {
+            padding: 8px 8px 8px 32px;
+            text-decoration: none;
+            font-size: 18px;
+            color: #f5f5f5;
+            display: block;
+            transition: 0.3s;
+        }
+
+        .sidenav a:hover {
+            color: #ffab91;
+        }
+
+        .sidenav .closebtn {
+            position: absolute;
+            top: 0;
+            right: 25px;
+            font-size: 36px;
+            margin-left: 50px;
+        }
+
+        main {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 30px;
+            background: #ffffff;
+            justify-content: center; /* 폼을 수평 중앙 정렬 */
+            border: 1px solid #d7ccc8;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            background-image: linear-gradient(to bottom, #fefae0, #f9e4b7);
+        }
+
+        h2 {
+            text-align: center;
+            font-family: 'Cursive', sans-serif;
+            font-size: 32px;
+            color: #5d4037;
+            margin-bottom: 20px;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* 레이블과 입력 필드를 가운데 정렬 */
+        }
+
+        form label {
+            width: 100%; /* 레이블이 입력 필드와 동일한 너비를 가짐 */
+            text-align: left; /* 텍스트는 왼쪽 정렬 */
+            margin-left: 170px; /* 왼쪽으로부터 20px 간격 추가 */
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #4e342e;
+        }
+
+        form input, form textarea {
+            width: 100%; /* 입력 필드가 폼 너비에 맞게 조정 */
+            max-width: 600px; /* 입력 필드의 최대 너비 설정 */
+            padding: 15px;
+            border: 1px solid #d7ccc8;
+            border-radius: 5px;
+            font-size: 16px;
+            background-color: #fffde7;
+            margin-bottom: 20px;
+            font-family: 'Georgia', serif;
+        }
+
+        form textarea {
+            height: 200px;
+            resize: none;
+        }
+
+        form button {
+            width: 100%;
+            max-width: 600px; /* 버튼의 최대 너비 설정 */
+            padding: 15px;
+            background-color: #6d4c41;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        form button:hover {
+            background-color: #5d4037;
+        }
+
+
+        footer {
+            text-align: center;
+            padding: 15px;
+            background-color: #8d6e63;
+            color: white;
+            margin-top: 50px;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <button class="menu-btn" onclick="openNav()">☰</button>
+    <h1>AILOG</h1>
+    <div class="header-buttons">
+        <button id="loginButton" class="header-btn" onclick="toggleLoginLogout()">Login</button>
+        <button class="header-btn" onclick="openJoinModal()">Join</button>
+    </div>
+</header>
+
+<div id="mySidenav" class="sidenav">
+    <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+    <h2>AILOG</h2>
+    <a href="{{ url_for('login') }}">로그인</a>
+    <a href="{{ url_for('signup') }}">회원가입</a>
+    <a href="{{ url_for('my_diary') }}">나의 일기</a>
+    <a href="{{ url_for('analyze') }}">일기 분석</a>
+</div>
+
+<main>
+    <h2>일기 작성</h2>
+    <form id="diaryForm" action="/save" method="POST">
+        <label for="title">제목</label>
+        <input type="text" id="title" name="title" placeholder="제목을 입력하세요" required />
+
+        <label for="content">내용</label>
+        <textarea id="content" name="content" placeholder="내용을 입력하세요" required></textarea>
+
+        <label for="tags">태그</label>
+        <input type="text" id="tags" name="tags" placeholder="태그를 쉼표로 구분하여 입력하세요 (예: 일상, 기쁨)" />
+
+        <button type="submit">저장</button>
+    </form>
+</main>
+
+<footer>
+    <p>2024 AILog - 모두의 감정을 이해하는 AI 다이어리</p>
+</footer>
+
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

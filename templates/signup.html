@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>회원가입</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<!-- 헤더 -->
+<header>
+    <button class="menu-btn" onclick="openNav()">☰</button>
+    <h1>AILOG</h1>
+</header>
+
+<!-- 사이드바 네비게이션 -->
+<div id="mySidenav" class="sidenav">
+    <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+    <h2>AILOG</h2>
+    <a href="{{ url_for('login') }}">로그인</a>
+    <a href="{{ url_for('signup') }}">회원가입</a>
+    <a href="{{ url_for('my_diary') }}">나의 일기</a>
+    <a href="{{ url_for('analyze') }}">일기 분석</a>
+</div>
+
+<!-- 회원가입 폼 -->
+<main>
+    <h2>회원가입</h2>
+    <form action="/signup" method="POST">
+        <label for="user_id">사용자 ID:</label>
+        <input type="text" id="user_id" name="user_id" required>
+
+        <label for="username">사용자 이름:</label>
+        <input type="text" id="username" name="username" required>
+
+        <label for="password">비밀번호:</label>
+        <input type="password" id="password" name="password" required>
+
+        <button type="submit">회원가입</button>
+    </form>
+</main>
+
+<!-- 스크립트 추가 -->
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

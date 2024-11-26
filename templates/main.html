@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AILOG - 감정을 이해하는 AI 다이어리</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.ico') }}">
+
 </head>
 <body>
 <header>
@@ -14,9 +16,10 @@
     <!-- 우측 상단 로그인 및 회원가입 버튼 -->
     <!-- 헤더에 있는 로그인 및 회원가입 버튼 -->
     <div class="header-buttons">
-        <button id="loginButton" class="header-btn" onclick="toggleLoginLogout()">Login</button>
+        <button id="loginButton" class="header-btn">Login</button>
         <button class="header-btn" onclick="openJoinModal()">Join</button>
     </div>
+
 
 </header>
 <!-- 로그인 모달 -->
@@ -51,19 +54,28 @@
     <h2 class="fade-in">AILOG</h2>
     <a href="{{ url_for('login') }}">로그인</a>
     <a href="{{ url_for('signup') }}">회원가입</a>
-    <a href="{{ url_for('my_diary') }}">나의 일기</a>
-    <a href="{{ url_for('analyze') }}">일기 분석</a>
+    <a href="{{ url_for('analyze') }}">일기 쓰기</a>
 </div>
 
 <main>
-    <h2 class="fade-in"><br>AI가 당신의 감정을 읽고<br> 친구처럼 위로해주는 스마트 다이어리</h2>
+    <h2 class="fade-in"><br>아이로그<br> 스마트 다이어리 </h2>
     <p class="description fade-in">
-        스마트 다이어리는 당신의 일기를 단순히 기록하는 것 이상의 경험을 제공합니다.<br>
-        마치 친구에게 속마음을 털어놓듯이, AI가 당신의 일기를 읽고 감정을 이해합니다.<br>
-        우울하거나 스트레스를 받는 순간, AI는 당신의 마음을 깊이 공감하며 따뜻한 위로와 조언을 건넵니다.<br>
-        혼자서 감정을 풀어내기 어려운 날, 이 다이어리가 언제든지 당신 곁에서 친구처럼 함께할 거예요.
+        나는 그냥 일기를 적는 도구가 아니야!<br>
+        너의 이야기를 들어주고, 너의 마음을 진짜로 이해하려고 해.<br>
+        마치 친한 친구에게 속마음을 털어놓는 것처럼,나랑 같이 수다떨자 <br>
+        우울하거나 힘든 날도 난 언제나 네편이야! <br>
+         <br>
     </p>
-    <img src="{{ url_for('static', filename='images/AILOGOG.png') }}" alt="AI 감정 다이어리 이미지" class="main-image fade-in">
+    <style>
+        .main-image {
+            max-width: 100%; /* 컨테이너 너비를 초과하지 않도록 */
+            height: auto; /* 비율을 유지하면서 크기 조정 */
+            display: block; /* 이미지가 블록 요소로 표시 */
+            margin: 20px auto; /* 상하 간격 및 가운데 정렬 */
+            width: 800px; /* 원하는 고정 너비 (필요에 따라 변경 가능) */
+        }
+    </style>
+    <img src="{{ url_for('static', filename='images/LOGI.png') }}" alt="AI 감정 다이어리 이미지" class="main-image fade-in">
 </main>
 <!-- 모달 배경 -->
 <div class="modal-backdrop" id="modalBackdrop" onclick="closeJoinModal()"></div>
@@ -315,5 +327,6 @@
     <p> 2024 AILog - 모두의 감정을 이해하는 AI 다이어리</p>
 </footer>
 <script src="{{ url_for('static', filename='script.js') }}"></script>
+
 </body>
 </html>

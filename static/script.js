@@ -1,29 +1,4 @@
-// 감정 분석 요청 처리
-/*document.getElementById('diaryForm').addEventListener('submit', async (event) => {
-    event.preventDefault();
 
-    const entryText = document.getElementById('entryText').value;
-
-    // 서버에 감정 분석 요청
-    const response = await fetch('/analyze', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ entryText })
-    });
-
-    const data = await response.json();
-
-    // 감정 분석 결과 표시
-    if (data.error) {
-        document.getElementById('response').innerText = `오류 발생: ${data.error}`;
-    } else {
-        document.getElementById('response').innerText = `감정 분석: ${data.emotionAnalysis}\n피드백: ${data.feedback}`;
-    }
-});
-*/
-// Open Side Navigation
 function openNav() {
     document.getElementById("mySidenav").style.width = "250px";
 }
@@ -152,7 +127,7 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
         if (result.success) {
             alert("로그인에 성공했습니다.");
             closeLoginModal();
-            window.location.href = "/analyze";  // 로그인 후 이동할 페이지
+            window.location.href = "/";  // 로그인 후 이동할 페이지
         } else {
             alert(result.message);
         }
@@ -206,23 +181,152 @@ document.addEventListener("DOMContentLoaded", async function() {
     }
 });
 
-// 로그인 시 toggle 기능
-function toggleLoginLogout() {
-    if (document.getElementById('loginButton').innerText === 'Logout') {
-        logout();
-    } else {
-        openLoginModal();
-    }
-}
+
+
 
 // 로그아웃 함수
 async function logout() {
-    const response = await fetch('/logout');
-    const result = await response.json();
+    try {
+        const response = await fetch('/logout', { method: 'POST' });
+        const result = await response.json();
 
-    if (result.success) {
-        document.getElementById('loginButton').innerText = 'Login';
-        document.getElementById('loginButton').onclick = openLoginModal;
-        alert("로그아웃되었습니다.");
+        if (result.success) {
+            const loginButton = document.getElementById('loginButton');
+            loginButton.innerText = 'Login';
+            loginButton.onclick = openLoginModal;
+            alert("로그아웃되었습니다.");
+        }
+    } catch (error) {
+        console.error("Error during logout:", error);
+        alert("로그아웃 중 문제가 발생했습니다.");
     }
 }
+
+document.addEventListener("DOMContentLoaded", async function () {
+    const loginButton = document.getElementById('loginButton');
+
+    // 로그인 상태 확인 및 버튼 상태 업데이트
+    async function updateLoginButton() {
+        const response = await fetch('/check_login_status');
+        const data = await response.json();
+
+        if (data.logged_in) {
+            // 로그인 상태: Logout 설정
+            loginButton.innerText = 'Logout';
+            loginButton.onclick = async function () {
+                const logoutResponse = await fetch('/logout');
+                const logoutResult = await logoutResponse.json();
+                if (logoutResult.success) {
+                    alert('로그아웃되었습니다.');
+                    // 상태 업데이트
+                    loginButton.innerText = 'Login';
+                    loginButton.onclick = openLoginModal;
+                }
+            };
+        } else {
+            // 비로그인 상태: Login 설정
+            loginButton.innerText = 'Login';
+            loginButton.onclick = openLoginModal;
+        }
+    }
+
+    // 페이지 로드 시 버튼 초기화
+    await updateLoginButton();
+});
+document.addEventListener("DOMContentLoaded", async function () {
+    const loginButton = document.getElementById('loginButton');
+
+    // 로그인 상태 확인 및 버튼 상태 업데이트
+    async function updateLoginButton() {
+        const response = await fetch('/check_login_status');
+        const data = await response.json();
+
+        if (data.logged_in) {
+            // 로그인 상태: Logout 설정
+            setLogoutState();
+        } else {
+            // 비로그인 상태: Login 설정
+            setLoginState();
+        }
+    }
+
+    // Logout 상태로 버튼 설정
+    function setLogoutState() {
+        loginButton.innerText = 'Logout';
+        loginButton.onclick = async function () {
+            const logoutResponse = await fetch('/logout');
+            const logoutResult = await logoutResponse.json();
+            if (logoutResult.success) {
+                alert('로그아웃되었습니다.');
+                setLoginState(); // Logout 후 Login 상태로 변경
+            }
+        };
+    }
+
+    // Login 상태로 버튼 설정
+    function setLoginState() {
+        loginButton.innerText = 'Login';
+        loginButton.onclick = openLoginModal;
+    }
+
+    // 페이지 로드 시 버튼 초기화
+    await updateLoginButton();
+});
+
+// Login 모달 열기 함수
+function openLoginModal() {
+    const loginModal = document.getElementById('loginModal');
+    if (loginModal) {
+        loginModal.style.display = 'block';
+        loginModal.style.zIndex = 1001; // 모달을 다른 요소보다 위로 표시
+    }
+}
+
+// Login 모달 닫기 함수
+function closeLoginModal() {
+    const loginModal = document.getElementById('loginModal');
+    if (loginModal) {
+        loginModal.style.display = 'none';
+    }
+}
+// 일기 저장 함수
+async function saveDiaryEntry(entryText) {
+    try {
+        // /analyze 요청 처리
+        const response = await fetch('/analyze', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ content: entryText })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            alert("일기가 성공적으로 저장되었습니다!");
+
+            // /save 요청
+            const saveResponse = await fetch('/save', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ diary_id: result.diary_id })
+            });
+
+            const saveResultHTML = await saveResponse.text();
+
+            // save.html을 현재 페이지에 렌더링
+            document.open();
+            document.write(saveResultHTML);
+            document.close();
+        } else {
+            alert(result.message);
+        }
+    } catch (error) {
+        console.error("Error saving diary entry:", error);
+        alert("일기 저장 중 오류가 발생했습니다.");
+    }
+}
+

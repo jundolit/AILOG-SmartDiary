@@ -3,7 +3,7 @@ body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #f3f8fb;
+    background-color: #f7efe5; /* 따뜻한 배경색 */
     color: #333;
 }
 
@@ -32,12 +32,12 @@ header {
     align-items: center;
     justify-content: center;
     padding: 1em;
-    background-color: #4CAF50;
+    background-color: #8d6e63; /* 헤더 색상 변경 */
     color: white;
     position: fixed;
     top: 0;
     left: 0;
-    z-index: 999;
+    z-index: 998;
 }
 
 header h1 {
@@ -57,10 +57,12 @@ header h1 {
 
 .header-btn {
     padding: 5px 10px;
-    background: transparent;
-    border: 1px solid white;
-    color: white;
+    background-color: #d7ccc8; /* 버튼 배경색 변경 */
+    border: none;
+    color: #4e342e; /* 버튼 텍스트 색상 변경 */
+    border-radius: 5px;
     cursor: pointer;
+    font-weight: bold;
 }
 
 /* 메뉴 버튼 스타일 */
@@ -81,11 +83,12 @@ header h1 {
     position: fixed;
     top: 0;
     left: 0;
-    background-color: #111;
+    background-color: #6d4c41; /* 사이드 네비게이션 배경색 변경 */
     overflow-x: hidden;
     transition: 0.3s;
     padding-top: 60px;
     color: #f1f1f1;
+    z-index: 999;
 }
 
 .sidenav h2 {
@@ -100,10 +103,12 @@ header h1 {
     color: #f1f1f1;
     display: block;
     transition: 0.3s;
+    z-index: 1600;
+
 }
 
 .sidenav a:hover {
-    color: #4CAF50;
+    color: #ffab91; /* 사이드 네비게이션 링크 호버 색상 변경 */
 }
 
 .sidenav .closebtn {
@@ -125,14 +130,15 @@ main {
 
 h2 {
     color: #333;
-    font-size: 1.8em;
+    font-size: 3em;
     margin-bottom: 0.5em;
 }
 
 .description {
-    font-size: 1.1em;
+    font-size: 1.35em;
     line-height: 1.6;
     margin: 1em 0;
+    text-align: left;
 }
 .modal {
     display: none; /* 기본적으로 숨김 */
@@ -195,7 +201,7 @@ h2 {
 .modal_site_join_policy h2 {
     text-align: center;
     margin-top: 0;
-    margin-bottom: 20px; /* 제목 하단에 여백 추가 */
+    margin-bottom: 30px; /* 제목 하단에 여백 추가 */
 }
 /* 약관 동의 모달 */
 #cocoaModal {

@@ -8,9 +8,10 @@ import os
 from dotenv import load_dotenv
 from sqlalchemy.exc import IntegrityError  # 추가 필요
 
+openai.api_key = "sk-proj-API있던 자리 입니다--"
 # 환경 변수 로드 및 OpenAI API 설정
-load_dotenv()
-openai.api_key = os.getenv("OPENAI_API_KEY")
+load_dotenv()  # .env 파일의 내용을 로드
+openai.api_key = os.getenv("OPENAI_API_KEY")  # 환경 변수에서 API Key를 가져옴
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'  # 로그인 세션을 위한 비밀 키 설정
@@ -37,6 +38,9 @@ class DiaryEntry(db.Model):
     emotion_analysis = db.Column(db.String(255), nullable=True)
     feedback = db.Column(db.String(255), nullable=True)
     entry_date = db.Column(db.DateTime, default=datetime.utcnow)
+@app.route('/favicon.ico')
+def favicon():
+    return redirect(url_for('static', filename='favicon.ico'))
 
 @app.route('/')
 def home():
@@ -45,7 +49,7 @@ def home():
 # 로그인 매니저 설정
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    return db.session.get(User, int(user_id))
 
 # 데이터베이스 생성
 with app.app_context():
@@ -99,50 +103,96 @@ def logout():
     session['logged_in'] = False  # 세션에 로그아웃 상태 저장
     return jsonify({'success': True})
 
-@app.route('/check_login_status')
+@app.route('/check_login_status', methods=['GET'])
 def check_login_status():
-    logged_in = session.get('logged_in', False)
-    return jsonify({'logged_in': logged_in})
+    return jsonify({"logged_in": current_user.is_authenticated}), 200
+
 
 # 감정 분석 및 일기 저장 엔드포인트
-@app.route('/analyze', methods=['POST', 'GET'])
+@app.route('/analyze', methods=['GET', 'POST'])
 @login_required
 def analyze():
-    if request.method == 'POST':
-        entry_text = request.form.get('entryText')
-        try:
-            # OpenAI API 감정 분석 요청
-            response = openai.Completion.create(
-                engine="text-davinci-003",
-                prompt=f"Analyze the emotion in this text: '{entry_text}'",
-                max_tokens=50,
-                temperature=0.7
-            )
-            analysis_result = response.choices[0].text.strip()
+    if request.method == 'GET':
+        # 일기 작성 페이지 렌더링
+        return render_template('analyze.html')
+    elif request.method == 'POST':
+        # Content-Type이 application/json인지 확인
+        if not request.is_json:
+            return jsonify({"success": False, "message": "JSON 형식의 요청만 지원합니다."}), 415
 
-            # 데이터베이스에 저장
+        # JSON 데이터 파싱
+        data = request.get_json()
+        title = data.get('title')
+        content = data.get('content')
+        tags = data.get('tags')  # 대표 키워드
+
+        # 필수 데이터 확인
+        if not content or not tags:
+            return jsonify({"success": False, "message": "일기 텍스트와 태그가 필요합니다."}), 400
+
+        # OpenAI API 감정 분석
+        try:
+            messages = [
+                {"role": "system", "content": "다음은 사용자 일기에 대한 피드백을 작성하는 AI입니다."},
+                {"role": "user", "content": f"""
+                    다음은 사용자 일기야. 이 일기에서 주요 키워드(태그)와 그에 관련된 감정을 중점적으로 분석해줘.
+
+                    **조건:**
+                    1. 일기 내용에서 중요한 키워드를 추출하고 각 키워드와 관련된 감정을 서술할 것.
+                    2. 사용자가 작성한 태그(키워드)를 기준으로 중요한 내용을 중점적으로 읽을 것.
+                    3. 피드백은 다정하고 친근한 반말로 작성하며, 친구처럼 위로하거나 공감하며 긍정적인 마무리로 끝낼 것. 꼭 반말로해야함
+                    반말 예시) "오늘 그런일이있었어? 많이 힘들었지"
+                    4. 절대 정치적, 선정적, 욕설, 폭언은 포함하지 말 것.
+                    5. 피드백은 꼭 위로와 긍정의 메시지를 담을 것.
+                    **일기 제목:** {title}
+
+                    **일기 내용:** {content}
+
+                    **태그(키워드):** {tags}
+                """}
+            ]
+
+            # 최신 OpenAI Chat API 호출
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",  # 모델 설정 (gpt-4로 변경 가능)
+                messages=messages
+            )
+
+            analysis_result = response['choices'][0]['message']['content'].strip()
+
+            # DB에 저장
             new_entry = DiaryEntry(
                 user_id=current_user.id,
-                entry_text=entry_text,
-                emotion_analysis=analysis_result,
-                feedback=f"Emotion Analysis Result: {analysis_result}"
+                entry_text=content,
+                emotion_analysis=tags,  # 태그를 분석 결과로 저장
+                feedback=analysis_result
             )
             db.session.add(new_entry)
             db.session.commit()
 
-            flash("일기가 성공적으로 분석되고 저장되었습니다.")
-            return redirect(url_for('my_diary'))
-        except Exception as e:
-            return jsonify({"error": str(e)}), 500
-    return render_template('AILOG.html')
+            # 저장된 일기의 ID 반환
+            return jsonify({
+                "success": True,
+                "message": "일기가 성공적으로 저장되었습니다.",
+                "feedback": analysis_result,
+                "diary_id": new_entry.id  # 저장된 일기의 ID 반환
+            }), 200
 
-# 나의 일기 엔드포인트
-@app.route('/my_diary')
+        except Exception as e:
+            print(f"OpenAI API Error: {e}")
+            return jsonify({"success": False, "message": "감정 분석 중 오류가 발생했습니다."}), 500
+@app.route('/save', methods=['POST'])
 @login_required
-def my_diary():
-    # 현재 사용자와 관련된 일기만 가져오기
-    entries = DiaryEntry.query.filter_by(user_id=current_user.id).order_by(DiaryEntry.entry_date.desc()).all()
-    return render_template('my_diary.html', entries=entries)
+def save_page():
+    data = request.get_json()
+    diary_id = data.get('diary_id')
+    diary = DiaryEntry.query.filter_by(id=diary_id, user_id=current_user.id).first()
+
+    if not diary:
+        return jsonify({"success": False, "message": "일기를 찾을 수 없습니다."}), 404
+
+    return render_template('save.html', diary=diary)
+
 
 # Flask 애플리케이션 실행
 if __name__ == '__main__':
